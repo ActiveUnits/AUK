@@ -16,7 +16,7 @@ Every instance can dispatch events when it is augmented with the appropiate meth
   * instance.remove(eventName, eventHandler)
 
 example:
-    var myHandler = function(eventData) {
+    var myHandler = function(eventData,eventSource) {
       // do something with eventData
     }
   
@@ -27,7 +27,8 @@ important to be known:
       // this will get invoked, but because it does not returns value next handler on the stack is invoked...
     }
   
-    var myHandler = function(eventData) {
+    var myHandler = function(eventData,eventSource) {
+      // eventSource == instance
       return 'something'; // this will prevent further event dispatching
     }
   
