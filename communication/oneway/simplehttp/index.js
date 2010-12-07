@@ -1,6 +1,7 @@
 Simplehttp = function() {
 	
 	var http = require('http');
+	var sys = require('sys');
 	
 	this.port = 8080;
 	
@@ -17,6 +18,9 @@ Simplehttp = function() {
 		this.context = context;
 		this.options = options;
 		
+		if(this.options == undefined)
+			this.options = {};
+		
 		if(typeof this.options.port != 'undefined')
 			this.port = this.options.port;
 		
@@ -28,6 +32,8 @@ Simplehttp = function() {
 	
 	this.connect = function() {
 		this.server.listen(this.port);
+		sys.log('http server is listening at '+this.port);
+		return this;
 	};
 };
 module.exports = new Simplehttp();

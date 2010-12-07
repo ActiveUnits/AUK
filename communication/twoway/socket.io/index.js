@@ -46,9 +46,11 @@ Socketio = function() {
 	this.connect = function() {
 		this.server = this.io.listen(this.http);
 		this.server.on('connection', this.clientConnectHandler); 
+		return this;
 	};
 	
 	this.clientConnectHandler = function(client) {
+		_self.dispatch('connect',{client: client});
 		client.on('message', _self.getClientMessageHandler(client)); 
 		client.on('disconnect', _self.getClientDisconnectHandler(client));
 	};

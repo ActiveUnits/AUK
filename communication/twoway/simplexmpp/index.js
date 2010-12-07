@@ -1,5 +1,6 @@
 Simplexmpp = function() {
 	var xmpp = require("./libs/xmpp");
+	var sys = require('sys');
 	
 	this.xmppCallbacks = [];
 	this.host = undefined;
@@ -22,6 +23,8 @@ Simplexmpp = function() {
 			this.password = options.pass;
 		if(typeof options.port != 'undefined')
 			this.port = options.port;
+		if(typeof options.serverPingTimeout != 'undefined')
+			this.serverPingTimeout = options.serverPingTimeout;
 		
 		this.host = options.host;
 		this.xmppConnection = new xmpp.Connection(this.host, this.port);
@@ -32,7 +35,10 @@ Simplexmpp = function() {
 		this.xmppConnection.connect(this.jid, this.password,
 				function (status, condition) {
 					if(status == xmpp.Status.CONNECTED) {
-						_self.xmppConnection.addHandler(_self.handleIncomingMessage, null, 'message', null, null, null);
+						_self.xmppConnection.addHandler(function(message){
+															_self.handleIncomingMessage(message);
+														},
+														null, 'message', null, null, null);
 
 						// sever ping 
 						setInterval(function() { _self.xmppConnection.sendIQ(xmpp.iq()); }, _self.serverPingTimeout);
@@ -41,27 +47,34 @@ Simplexmpp = function() {
 													port: _self.port, 
 													jid: _self.jid,
 													status: status});
+						
+						sys.log("xmpp connected at "+_self.jid+"@"+_self.host); 
 					}
 					else {
 						_self.dispatch('statuschanged',{host: _self.host, 
 													 port: _self.port, 
 													 jid: _self.jid,
 													 status: status});
+						if(status == 6)
+							sys.log("xmpp disconnected");
 					}
 				}
 		);
+		
+		return this;
 	};
 	
 	this.handleIncomingMessage = function(message) {
+		var body = this.getMessageBody(message);
+		var from = message.attr.from;
+		var _self = this;
+		
 		if(message.getChild('thread')) {
 		
 			var threadId = message.getChild('thread').toString();
 			threadId = threadId.replace("<thread>", "").replace("</thread>", "");
 			
 			if(this.xmppCallbacks[threadId]) {
-			
-				var body = this.getMessageBody(message);
-				var from = message.attr.from;
 				
 				this.xmppCallbacks[threadId].onResponse(from, body, message);
 				
@@ -70,10 +83,18 @@ Simplexmpp = function() {
 				this.xmppCallbacks[threadId] = undefined;
 			}
 			else
-				this.dispatch("message",{body: this.getMessageBody(message), from: message.attr.from});
+				this.dispatch("message",{body: body, from: from, 
+					sendResponse: function(body){
+						_self.sendResponse(message, body);
+					}
+				});
 		}
 		else
-			this.dispatch("message",{body: this.getMessageBody(message), from: message.attr.from});
+			this.dispatch("message",{body: body, from: from,
+				sendResponse: function(body){
+					_self.sendResponse(message, body);
+				}
+			});
 	};
 	
 	
@@ -86,8 +107,11 @@ Simplexmpp = function() {
 
 	this.sendResponse = function(message, body) {
 		
-		var threadId = message.getChild("thread").toString();
-		threadId = threadId.replace("<thread>", "").replace("</thread>", "");
+		var threadId = this.xmppConnection.getUniqueId();
+		if(message.getChild("thread") != null) {
+			threadId = message.getChild("thread").toString();
+			threadId = threadId.replace("<thread>", "").replace("</thread>", "");
+		}
 		
 		this.send(message.getAttribute("from"), body, null, null, null,
 			threadId);

@@ -1,4 +1,8 @@
 Pubsub = function() {
+	
+	var rest = require("./lib/restler/restler");
+	var sys = require('sys');
+	
 	this.subscribers = [];
 	
 	this.init = function(context, options) {
@@ -23,20 +27,31 @@ Pubsub = function() {
 	};
 	
 	this.listenAtSimpleXmpp = function(xmpp) {
+		var _self = this;
 		xmpp.on('message', function(event){
 			// XXX should be improved. currently handles only simple raw messages of action|event, where action is subscribe or unsubscribe
 			var parts = event.body.split('|');
 			
-			if(parts[0] == "subscribe")
+			if(parts[0] == "subscribe") {
 				_self.addSubscriber(xmpp,event.from,parts[1]);
-			if(parts[0] == "unsubscribe")
+				event.sendResponse("subscribed");
+			}
+			if(parts[0] == "unsubscribe") {
 				_self.removeSubscriber(xmpp,event.from,parts[1]);
+				event.sendResponse("unsubscribed");
+			}
 			
 			return false;
 		});
+		
+		sys.log("pubsub listening at simplexmpp "+xmpp.jid+"@"+xmpp.host);
+		
+		return this;
 	};
 	
 	this.listenAtSimpleHttp = function(http) {
+		
+		var _self = this;
 		http.on('request',function(event){
 			var url = require('url');
 			var query = url.parse(event.request.url);
@@ -54,21 +69,31 @@ Pubsub = function() {
 				return false;
 			}
 		});
+		
+		sys.log("pubsub listening at simplehttp "+http.port);
+		return this;
 	};
 	
 	this.publish = function(eventName, eventData) {
 		for(var i in this.subscribers) {
 			if(this.subscribers[i].eventName == eventName) {
+				sys.log('publishing to subscriber '+this.subscribers[i].subscriber+" data:"+eventData);
+				
 				if(this.subscribers[i].channel == 'http')
-					this.sendHttpNotification(this.subscribers[i].subscriber, eventData);
+					this.sendHttpNotification(this.subscribers[i].subscriber, JSON.stringify(eventData));
 				if(typeof this.subscribers[i].channel == 'object' && typeof this.subscribers[i].channel.send != 'undefined')
-					this.subscribers[i].channel.send(this.subscribers[i].subscriber, eventData);
+					this.subscribers[i].channel.send(this.subscribers[i].subscriber, JSON.stringify(eventData));
 			}
 		}
 	};
 	
 	this.sendHttpNotification = function(url,data) {
-		// TODO implement
+		rest.post(url, {
+			  multipart: true,
+			  data: data
+			}).addListener('complete', function(data) {
+			  // what to do with the response? 
+			});
 	};
 };
 

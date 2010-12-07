@@ -1,6 +1,10 @@
-Context = new( function() {
+Context = function() {
 	
 	var _self = this;
+	
+	/*******************************************************************************
+	 * EventDispatching implementation
+	 *******************************************************************************/
 	this.listeners = [];
 
 	this.on = function(eventSource, eventName, eventHandler) {
@@ -24,7 +28,7 @@ Context = new( function() {
 			if((this.listeners[i].eventSource == eventSource || this.listeners[i].eventSource == null)  
 				 && this.listeners[i].eventName == eventName)
 			{
-				var result = this.listeners[i].eventHandler(event,eventSource);
+				var result = this.listeners[i].eventHandler(event, eventSource);
 				if(typeof result != 'undefined')
 					return result;
 			}
@@ -50,68 +54,63 @@ Context = new( function() {
 		};
 	};
 	
-	this.communicationPrototypes = {
+	this.forwardEvents = function(from,by) {
+		from.dispatch = function(eventName, event) {
+			_self.dispatch(by, eventName, event);
+		};
+	};
+	
+	/*******************************************************************************
+	 * AUK Context implementation
+	 *******************************************************************************/
+	this.channels = {
 		instances : [],
-		create : function(name, options) {
-			var instance = require(this[name]);
-			_self.augmentAsEventDispatcher(instance);
-			
-			if(typeof instance.init != 'undefined')
-				instance.init(_self, options);
-			
-			if(typeof options != 'undefined' && typeof options.id != 'undefined')
-				this.instances[options.id] = instance;
-			return instance;
-		},
 		get : function(id) {
 			return instances[id];
 		}
 	};
 	
-	this.componentPrototypes = {
+	this.components = {
 		instances : [],
-		create : function(name,options) {
-			var instance = require(this[name]);
-			_self.augmentAsEventDispatcher(instance);
-			
-			if(typeof instance.init != 'undefined')
-				instance.init(_self, options);
-
-			if(typeof options != 'undefined' && typeof options.id != 'undefined')
-				this.instances[options.id] = instance;
-			return instance;
-		},
 		get : function(id) {
 			return instances[id];
 		}
 	};
 	
-	this.registerChannels = function(protocols) {
-		for(var i in protocols)
-			this.communicationPrototypes[i] = protocols[i];
+	this.createInstance = function(name, options) {
+		var instance = require(name);
+		this.augmentAsEventDispatcher(instance);
+		
+		if(typeof instance.init != 'undefined')
+			instance.init(_self, options);
+		return instance;
 	};
 	
 	this.createChannel = function(name, options) {
-		return this.communicationPrototypes.create(name, options);
+		var instance = this.createInstance(name, options);
+		
+		if(typeof options != 'undefined' && typeof options.id != 'undefined')
+			this.channels.instances[options.id] = instance;
+		
+		return instance;
 	};
 	
 	this.getChannel = function(id) {
-		return this.communicationPrototypes.get(id);
-	};
-	
-	this.registerComponents = function(components) {
-		for(var i in components)
-			this.componentPrototypes[i] = components[i];
+		return this.channels.get(id);
 	};
 	
 	this.createComponent = function(name, options) {
-		return this.componentPrototypes.create(name, options);
+		var instance = this.createInstance(name, options);
+
+		if(typeof options != 'undefined' && typeof options.id != 'undefined')
+			this.components.instances[options.id] = instance;
+		
+		return instance;
 	};
 	
 	this.getComponent = function(id) {
-		return this.componentPrototypes.get(id);
+		return this.components.get(id);
 	};
-} );
+};
 
-for(var i in Context)
-	exports[i] = Context[i];
+module.exports = new Context();

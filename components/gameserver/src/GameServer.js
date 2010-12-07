@@ -25,6 +25,7 @@ GameServer.prototype.start = function()
 	// ********* ConnectionsManager *********
 	
 	this.connectionsManager = new ConnectionsManager(this.context);
+	this.connectionsManager.addEventListener(ConnectionsManagerEvent.CLIENT_CONNECTED, this.onClientConected, this);
 	this.connectionsManager.addEventListener(ConnectionsManagerEvent.CLIENT_MESSAGE, this.onClientMessage, this);
 	this.connectionsManager.addEventListener(ConnectionsManagerEvent.CLIENT_DISCONNECTED, this.onClientDisconected, this);
 	
@@ -74,10 +75,16 @@ GameServer.prototype.onClientMessage = function(e)
 	this.securityManager.validate(e.client, e.message);
 }
 
+GameServer.prototype.onClientConected = function(e)
+{
+	this.dispatch("openedconnection",{client:e.client});
+}
+
 GameServer.prototype.onClientDisconected = function(e)
 {
 	this.accountsManager.clientDisconected(e.client);
 	this.socketEventsManager.removeAllEventListeners(e.client);
+	this.dispatch("closedconnection",{client:e.client});
 }
 
 GameServer.prototype.onValidClientMessage = function(e)
