@@ -5,9 +5,9 @@ var context = require('./auk-context');
 var http = context.createChannel('./communication/oneway/simplehttp').connect();
 
 var xmpp = context.createChannel('./communication/twoway/simplexmpp', {
-						host:'xmpp.hookie.east.fi', 
-						jid:'test@test.xmpp.hookie.east.fi', 
-						pass:'hookie'
+						host:'host', 
+						jid:'test@test.host', 
+						pass:'something'
 					}).connect();
 
 var socketio = context.createChannel('./communication/twoway/socket.io', {
