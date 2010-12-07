@@ -2,6 +2,7 @@
 email list: http://activeunits.org/forum/ 
 
 Implementation of active unit skeleton containing the following features:
+
   * listen/write to several communication channels (http, xmpp, socketio)
   * component(middleware) based development
   * cross instances event dispatching
@@ -9,6 +10,7 @@ Implementation of active unit skeleton containing the following features:
 
 ## event system ##
 Every instance can dispatch events when it is augmented with the appropiate methods:
+
   * instance.on(eventName, eventHandler) 
   * instance.dispatch(eventName, eventData)
   * instance.remove(eventName, eventHandler)
@@ -44,15 +46,17 @@ Channel is a communication medium through which data is send or received.
 
 ### simplehttp ###
 options:
+
   * port - default 8080, port on which http server will listen
-  * requestHandler(req,res) - default renders "welcome to simplehttp server", 
-method for handling requests
+  * requestHandler(req,res) - default renders "welcome to simplehttp server", method for handling requests
 
 events:
+
   * name:"request", eventData: {request, response} - event fired on incoming request.
 
 ### simplexmpp ###
 options:
+
   * host - host to which xmpp client should connect
   * port - default 5275, port used for connection
   * jid - jid used for authentication
@@ -60,17 +64,20 @@ options:
   * serverPingTimeout - default 30sec, ping interval to keep the xmpp connectino alive (useful for xmpp components)
 
 events:
+
   * name:"connected", eventData: {host, port, jid, status} - dispatched after xmpp client is connected
   * name:"statuschanged", eventData: {host, port, jid, status} - dispatched after xmpp connection status is changed. if status == 6 then connection is closed.
   * name:"message", eventData: {body, from, sendResponse} - dispatched on incoming message, sendResponse(body) sends body as response to the incoming message.
 
 ### socket.io ###
 options:
+
   * port - default 8080
   * http - used to give reference for http server
   * createHttpServer - method which will be invoked to return http server instance
 
 events:
+
   * name: connect, eventData: {client} - dispatched on client connect
   * name: message, eventData: {client, message} - dispatched on incoming message
   * name: disconnect, eventData: {client} - dispatched on client disconnect
@@ -81,6 +88,7 @@ Component used to provide realtime game server (multiplayer games, player accoun
 ### pubsub ###
 Component used to provide simple publisher-subscribe functionality. 
 methods:
+
   * listenAtSimpleHttp(httpServer) - hooks pubsub component to simpleHttp channel listening for http requests:
     * /subscribe?callback=http://url&eventName=name
     * /unsubscribe?callback=http://url&eventName=name
