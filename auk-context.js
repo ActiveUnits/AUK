@@ -40,6 +40,11 @@ Context = function() {
 		instance.dispatch = function(eventName, event) {
 			_self.dispatch(this, eventName, event);
 		};
+		if(typeof instance.emit != 'undefined')
+			throw new Error(instance+" has method emit already, can not augment it");
+		instance.emit= function(eventName, event) {
+			_self.dispatch(this, eventName, event);
+		};
 		
 		if(typeof instance.on != 'undefined')
 			throw new Error(instance+" has method on already, can not augment it");
@@ -54,10 +59,26 @@ Context = function() {
 		};
 	};
 	
-	this.forwardEvents = function(from,by) {
-		from.dispatch = function(eventName, event) {
-			_self.dispatch(by, eventName, event);
-		};
+	this.forwardEvents = function(from, by, events) {
+		if(typeof from.dispatch !== "undefined" && events == undefined) {
+			from.dispatch = function(eventName, event) {
+				_self.dispatch(by, eventName, event);
+			};
+		} else if(typeof from.emit !== "undefined" && events == undefined) {
+			from.emit = function(eventName, event) {
+				_self.dispatch(by, eventName, event);
+			};
+		} else if(events != undefined && typeof from.emit !== "undefined") {
+			for(var i in events) {
+				from.on(events[i], function(){
+					var event = {};
+					for(var a in this.arguments)
+						event[a] = this.arguments[a];
+					_self.dispatch(by, events[i], event);
+				});
+			}
+		} else
+			throw new Error("can not forward events from "+from+" by "+by+" events:"+events);
 	};
 	
 	/*******************************************************************************

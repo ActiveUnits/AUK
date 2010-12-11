@@ -64,6 +64,11 @@ Simplexmpp = function() {
 		return this;
 	};
 	
+	this.disconnect = function() {
+		this.xmppConnection.disconnect();
+		return this;
+	};
+	
 	this.handleIncomingMessage = function(message) {
 		var body = this.getMessageBody(message);
 		var from = message.attr.from;

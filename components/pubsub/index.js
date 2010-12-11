@@ -74,15 +74,20 @@ Pubsub = function() {
 		return this;
 	};
 	
+	this.stop = function() {
+		// ?
+	};
+	
 	this.publish = function(eventName, eventData) {
+		var data = JSON.stringify(eventData);
 		for(var i in this.subscribers) {
 			if(this.subscribers[i].eventName == eventName) {
-				sys.log('publishing to subscriber '+this.subscribers[i].subscriber+" data:"+eventData);
+				sys.log('publishing to subscriber '+this.subscribers[i].subscriber+" data:"+data);
 				
 				if(this.subscribers[i].channel == 'http')
-					this.sendHttpNotification(this.subscribers[i].subscriber, JSON.stringify(eventData));
+					this.sendHttpNotification(this.subscribers[i].subscriber, data);
 				if(typeof this.subscribers[i].channel == 'object' && typeof this.subscribers[i].channel.send != 'undefined')
-					this.subscribers[i].channel.send(this.subscribers[i].subscriber, JSON.stringify(eventData));
+					this.subscribers[i].channel.send(this.subscribers[i].subscriber, data);
 			}
 		}
 	};

@@ -35,5 +35,11 @@ Simplehttp = function() {
 		sys.log('http server is listening at '+this.port);
 		return this;
 	};
+	
+	this.disconnect = function() {
+		this.server.close();
+		sys.log('http server stopped at '+this.port);
+		return this;
+	}
 };
 module.exports = new Simplehttp();

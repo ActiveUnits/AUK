@@ -49,6 +49,11 @@ Socketio = function() {
 		return this;
 	};
 	
+	this.disconnect = function() {
+		// ?
+		return this;
+	};
+	
 	this.clientConnectHandler = function(client) {
 		_self.dispatch('connect',{client: client});
 		client.on('message', _self.getClientMessageHandler(client)); 

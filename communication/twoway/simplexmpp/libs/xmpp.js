@@ -152,6 +152,10 @@ exports.Connection.prototype = {
 		this._setStatus(xmpp.Status.CONNECTING);
 	},
 	
+	disconnect : function() {
+		this.socket.end();
+	},
+	
 	send: function (data)
 	{
 		this.debug("SND: "+data);

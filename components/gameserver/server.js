@@ -28,6 +28,10 @@ GameServer = function(){
 		
 		return this;
 	};
+	
+	this.stop = function() {
+		// ?
+	};
 };
 
 module.exports = new GameServer();
