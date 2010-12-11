@@ -7,6 +7,7 @@ var AUI = function() {
 	this.masterInstance = null;
 	this.masterPort = 9000;
 	
+	var _self = this;
 	this.childs = [];
 	this.master = null;
 	
@@ -40,16 +41,7 @@ var AUI = function() {
 			}
 	};
 	
-	this.invokeAtChilds = function(methodName,arguments) {
-		for(var i in this.childs)
-			if(typeof this.childs[i][methodName] == "undefined")
-				sys.log(methodName+" not found at child "+i);
-			else
-				this.childs[i][methodName].apply(this.childs[i], arguments);
-	};
-	
 	this.start = function(unitAPI) {
-		var _self = this;
 		
 		this.localDNode = DNode(function(client, conn) {
 			_self.childs.push(client);
@@ -101,6 +93,15 @@ var AUI = function() {
 	this.stop = function() {
 		// ?
 		return this;
+	};
+	
+	this.broadcast = function(methodName,methodArgsArray) {
+		for(var i = 0; i<this.childs.length; i++) {
+			if(typeof this.childs[i][methodName] == "undefined")
+				sys.log(methodName+" not found at child "+i);
+			else
+				this.childs[i][methodName].apply(this.childs[i], methodArgsArray);
+		}
 	};
 };
 
